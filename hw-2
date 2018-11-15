@@ -1,0 +1,414 @@
+#include <stdio.h> 
+#include <string.h> 
+#include <ctype.h> 
+#include <stdlib.h> 
+#include <math.h>
+#define _CRT_SECURE_NO_WARNINGS
+
+ struct Stack
+{
+	char data;
+	struct Stack* next;
+
+ };
+ typedef struct Stack  Stack;
+
+Stack* head;
+
+
+void create(Stack* head) {
+	head = NULL;
+	
+}
+
+int is_empty(Stack* head) {
+	if (head != NULL) { return 1; }//satck not empty
+	return 0;//stack empty
+}
+
+void push(char tv) {
+	Stack* temp = (Stack*)malloc(sizeof(Stack));
+	if (temp == NULL) { exit(0); }
+	temp->data = tv;
+	temp->next = head;
+	head = temp;
+}
+
+char pop() {
+	Stack* temp = head;
+	char temp_tv=temp->data;
+	head = head->next;
+	free(temp);
+	return temp_tv;
+}
+
+void display(Stack*head) {
+	Stack* temp = head;
+	if (is_empty(head)!=0) {
+		printf("STACK:  ");
+		do
+		{
+			printf("%c ", temp->data);
+			temp = temp->next;
+
+		} while (is_empty(temp)!=0);
+		printf("\n");
+	}
+	else {
+		printf("the stack is empty\n");
+	}
+
+}
+
+int helpfun(char tv, char op) {
+	/*
+	פונקציה מחזירה 0 אם לא צריך להוציא עוד ז''א 
+	התו הוא בדרגה גבוה יותר
+
+	פונקציה מחזירה 1 אם צריך להמשיך להוציא מהמחסנית
+	ז''א התו נמוך יותר בדרגה
+
+	*/
+
+	if ((tv == '+'||tv=='-') && op == '-') {
+		return 0;
+	}
+	
+	if ((tv == '+' || tv == '-') && op == '+') {
+		return 0;
+	}
+
+	if ((tv == '+' || tv == '-') && op == '/') {
+		return 1;
+	}
+	if ((tv == '+' || tv == '-') && op == '*') {
+		return 1;
+	}
+
+	if ((tv == '+' || tv == '-') && op == '^') {
+		return 1;
+	}
+	
+
+
+	//---------------------------------------------
+	if ((tv == '*' || tv == '/') && op == '-') {
+		return 0;
+	}
+	if ((tv == '*' || tv == '/') && op == '+') {
+		return 0;
+	}
+	if ((tv == '*' || tv == '/') && op == '/') {
+		return 0;
+	}
+	if ((tv == '*' || tv == '/') && op == '*') {
+		return 0;
+	}
+	if ((tv == '*' || tv == '/') && op == '^') {
+		return 1;
+	}
+	//-------------------------------------------------------
+	if (tv == '^'  && op == '-') {
+		return 0;
+	}
+
+	if (tv == '^'  && op == '+') {
+		return 0;
+	}
+	if (tv == '^'  && op == '*') {
+		return 0;
+	}
+	if (tv == '^'  && op == '/') {
+		return 0;
+	}
+	if (tv == '^'  && op == '^') {
+		return 0;
+	}
+
+
+
+
+
+
+}
+
+int CalcOp(char token) {
+
+/*
+Function that accepts a character
+And takes the operands out of the stack
+And operates the operator on the operands
+
+*/
+	int op1 = 0, op2 = 0, ten = 1;
+	char tv;
+	
+	pop();//for space
+	if ((head->next!=NULL)&&(head->next->data != ' ')) {
+		while ((head!= NULL) && (head->data!= ' ')) {
+			tv = pop();
+			if (tv == '-') {
+				op1 = op1 * -1;
+			}
+			else
+			{
+				op1 = op1 + (tv - 48)*ten;
+				ten = ten * 10;
+			}
+			
+		}
+	}
+	else if(head!=NULL) {
+		tv = pop();
+		if (tv == '-') {
+			op1 = op1 * -1;
+		}
+		else {
+			op1 = tv - 48; 
+		}
+		
+	}
+	pop();//for space
+	
+	ten = 1;
+	if ((head->next!=NULL)&&(head->next->data != ' ')) {
+		while ((head!= NULL) && (head->data != ' ')) {
+			tv = pop();
+			if (tv == '-') {
+				op2 = op2 * -1;
+			}
+			else {
+
+				op2 = op2 + (tv - 48)*ten;
+				ten = ten * 10;				
+			}
+
+
+		}
+	}
+	else if(head!=NULL){
+		tv = pop();
+		if (tv == '-') {
+			op2 = op2 * -1;
+		}
+		else
+		{
+			op2 = tv - 48;
+		}
+
+		
+	}
+		
+
+
+
+	if (token == '-') {
+		return op2 - op1;
+	}
+
+	else if (token == '+') {
+		return op2 + op1;
+	}
+	else if (token == '*') {
+		return op2 * op1;
+	}
+	else if (token == '/') {
+		return op2 / op1;
+	}
+	else if (token == '^') {
+		int res = 1;
+		while (op1 > 0) {
+			
+			res= res*op2;
+			op1--;
+		}
+		return res;
+
+	}
+
+
+
+}
+
+int FinalClac() {
+	/*
+	The function calculates the final expression left in the stack
+	*/
+	char token;
+	int ten = 1;
+	int res = 0;
+	
+	while (is_empty(head) == 1) {
+		token = pop();
+		if (token == ' ') {
+			continue;
+		}
+		else if(token == '-') {
+			res = res * -1;
+		}
+		else
+		{
+			res = res + (token - 48)*ten;
+			ten = ten * 10;
+		}
+	}
+	return res;
+
+
+}
+void infixTopostfix(char infix[], char postfix[]) {
+	//postfix is empty array
+	create(head);
+	char tv;
+	int i = 0, j = 0;
+
+
+	while (infix[i] != '\0') {
+		tv = infix[i];
+
+		//case-1
+		if (tv == '(') {
+			push(tv);
+			
+		}
+
+		//case-2
+		else if (tv == ')') {
+			while (head->data != '(') {
+				postfix[j] = ' ';
+				j++;
+				postfix[j]=pop();
+				j++;
+			}
+			pop();//to relase char )
+			
+
+		}
+
+		//case-3
+		else if (tv == '+' || tv == '-' || tv == '^' || tv == '*' || tv == '/') {
+
+			postfix[j] = ' ';
+			j++;
+
+			if (head == NULL) {
+				push(tv);
+			}
+			else
+			{
+				while ((is_empty(head) == 1) && (helpfun(tv, head->data) == 1)) {
+				
+					
+					postfix[j] = pop();
+					j++;
+					postfix[j] = ' ';
+					j++;
+				}
+				push(tv);
+				
+			}
+			
+
+
+		}
+		//case-4 tv is a number
+		else if (tv == '0' || tv == '1' || tv == '2' || tv == '3' || tv == '4' || tv == '5' || tv == '6' || tv == '7' || tv == '8' || tv == '9') {
+			postfix[j] = tv;
+			j++;
+			
+		}
+		i++;
+		
+
+	}
+	
+	//when infix is over,the reast of stck go's to postifx
+	while (is_empty(head) == 1) {
+		postfix[j] = ' ';
+		j++;
+		postfix[j] = pop();
+		j++;
+	}
+
+	
+
+
+
+
+}
+
+int evaluatePostfix(char* exp)
+{
+
+	//Note: Always after  push to the stack, a space character is pushed again For separating variables
+	char token;
+	int res = 0;
+	int op1 = 0, op2 = 0,i = 0,j=0;
+	char temp[50] = {0};
+
+
+	while (i<strlen(exp)) {
+		token = exp[i];
+		if (token == ' ') {
+			i++;
+			continue;
+		}
+		if (token == '0' || token == '1' || token == '2' || token == '3' || token == '4' || token == '5' || token == '6' || token == '7' || token == '8' || token == '9') {
+			if (exp[i + 1] == ' ') {
+				push(token);
+				push(' ');
+				i++;
+			}
+			else {
+				push(token);
+				i++;
+				token = exp[i];
+				push(token);
+				push(' ');
+				i++;
+			}
+		}
+
+		if (token == '+' || token == '-' || token == '*' || token == '/' || token == '^') {
+			
+			res = CalcOp(token);
+			_itoa_s(res, temp,50, 10);
+			while (j<strlen(temp)) {
+
+				push(temp[j]);
+				j++;
+			}
+			j = 0;
+			push(' ');
+			i++;
+		}
+	}
+	return FinalClac();
+	
+}
+
+void PrintExpDetails(char exp[]) {
+	char sol[100] = { 0 };
+	infixTopostfix(exp, sol);
+	printf("Infix expresion: %s\n", exp);
+	printf("Postfix expression: %s\n", sol);
+	printf("It's Value: %d\n", evaluatePostfix(sol));
+	printf("***********************************\n");
+}
+
+
+
+int main() {
+ 
+	char ex[][50] = { "10*5-3", "(5-2)*13", "18-3*5", "4*5-2", "(10+3)*2", "20-3*5", "12-12/3", "(7+4)^2",
+		"(4*5)^2", "(15-7)-4*(18-30)^2", "(23-2)*2^4" };
+
+	for (int i = 0; i < 11; i++)
+		PrintExpDetails(ex[i]);
+
+		
+return 0;
+}
+
+
+
